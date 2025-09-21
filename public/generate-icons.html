@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Generate PWA Icons</title>
+</head>
+
+<body>
+    <canvas id="canvas" style="display: none;"></canvas>
+    <script>
+        // Function to create icon for different sizes
+        function createIcon(size) {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = size;
+            canvas.height = size;
+
+            // Create gradient
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#3b82f6');
+            gradient.addColorStop(1, '#8b5cf6');
+
+            // Draw rounded rectangle
+            const radius = size * 0.167; // 32/192 ratio
+            ctx.fillStyle = gradient;
+            roundRect(ctx, 0, 0, size, size, radius);
+            ctx.fill();
+
+            // Draw cooking emoji
+            ctx.fillStyle = 'white';
+            ctx.font = `${size * 0.417}px Arial`; // 80/192 ratio
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🍳', size / 2, size * 0.52);
+
+            // Draw text if size is large enough
+            if (size >= 144) {
+                ctx.font = `${size * 0.083}px Arial`; // 16/192 ratio
+                ctx.fillText('Recipe Book', size / 2, size * 0.73);
+            }
+
+            // Convert to blob and download
+            canvas.toBlob(function (blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.download = `icon-${size}x${size}.png`;
+                a.href = url;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+        }
+
+        function roundRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+        }
+
+        // Generate all required sizes
+        const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+
+        function generateNext(index) {
+            if (index < sizes.length) {
+                createIcon(sizes[index]);
+                setTimeout(() => generateNext(index + 1), 500);
+            }
+        }
+
+        // Start generation when page loads
+        window.onload = () => generateNext(0);
+    </script>
+</body>
+
+</html>

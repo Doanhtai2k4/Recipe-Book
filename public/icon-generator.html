@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>PWA Icon Generator</title>
+    <style>
+        canvas {
+            border: 1px solid #ccc;
+            margin: 10px;
+        }
+
+        .icons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>🍳 Recipe Book PWA Icons</h2>
+    <div class="icons" id="icons"></div>
+    <button onclick="downloadAll()">Download All Icons</button>
+
+    <script>
+        const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+
+        function createIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            canvas.style.width = '100px';
+            canvas.style.height = '100px';
+
+            const ctx = canvas.getContext('2d');
+
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#3b82f6');
+            gradient.addColorStop(1, '#8b5cf6');
+
+            // Draw rounded rectangle
+            const radius = size * 0.167;
+            ctx.fillStyle = gradient;
+            roundRect(ctx, 0, 0, size, size, radius);
+            ctx.fill();
+
+            // Draw white circle background for emoji
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(size / 2, size * 0.45, size * 0.25, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Draw cooking pot symbol
+            ctx.fillStyle = '#3b82f6';
+            ctx.font = `bold ${size * 0.25}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🍳', size / 2, size * 0.45);
+
+            // Add text for larger sizes
+            if (size >= 144) {
+                ctx.fillStyle = 'white';
+                ctx.font = `${size * 0.08}px Arial`;
+                ctx.fillText('Recipe Book', size / 2, size * 0.78);
+            }
+
+            // Add to page
+            const container = document.createElement('div');
+            container.appendChild(canvas);
+
+            const label = document.createElement('p');
+            label.textContent = `${size}x${size}`;
+            container.appendChild(label);
+
+            const downloadBtn = document.createElement('button');
+            downloadBtn.textContent = 'Download';
+            downloadBtn.onclick = () => downloadIcon(canvas, size);
+            container.appendChild(downloadBtn);
+
+            document.getElementById('icons').appendChild(container);
+
+            return canvas;
+        }
+
+        function roundRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+        }
+
+        function downloadIcon(canvas, size) {
+            canvas.toBlob(function (blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.download = `icon-${size}x${size}.png`;
+                a.href = url;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 'image/png');
+        }
+
+        function downloadAll() {
+            const canvases = document.querySelectorAll('canvas');
+            let index = 0;
+
+            function downloadNext() {
+                if (index < canvases.length) {
+                    const canvas = canvases[index];
+                    const size = sizes[index];
+                    downloadIcon(canvas, size);
+                    index++;
+                    setTimeout(downloadNext, 500);
+                }
+            }
+
+            downloadNext();
+        }
+
+        // Generate all icons
+        sizes.forEach(size => createIcon(size));
+    </script>
+</body>
+
+</html>
